@@ -95,7 +95,10 @@ cd ../frontend && npm test
 - **Subscription gating**: The backend strips nutritional data from the API response when the user has no active subscription. The frontend shows a subscribe prompt in place of nutrition info.
 
 ### Data Handling
-- **Missing/incomplete data**: Open Food Facts data is community-contributed and often incomplete. The app handles missing product names, brands, images, and nutrient values with fallback text and null-safe rendering.
+- **Missing/incomplete data**: Open Food Facts data is community-contributed and often incomplete. The app handles this at every level:
+  - **Backend**: Missing product names fall back to "Unknown product", missing brands to "Unknown brand", absent nutrient values map to `null`.
+  - **Frontend cards**: A data completeness progress bar (e.g. "4/8") shows how complete the nutrition data is. Products with no nutrient data at all display a clear "Nutrition data not yet reported" warning instead of empty space.
+  - **Nutrition modal**: Missing values show "Not reported" (instead of raw "N/A") with a subtle background, a completeness percentage bar at the top, and an explanatory footer noting that data is community-contributed.
 - **Recent searches**: Stored in MySQL via Prisma. Limited to the 10 most recent per user, displayed as clickable chips for quick re-search.
 
 ## Known Limitations
