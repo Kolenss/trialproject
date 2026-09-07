@@ -1,11 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { searchProducts } from "../services/openFoodFacts.js";
+import { searchProducts, clearCache } from "../services/openFoodFacts.js";
 
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
 beforeEach(() => {
   mockFetch.mockReset();
+  clearCache();
 });
 
 describe("searchProducts", () => {
@@ -115,11 +116,12 @@ describe("searchProducts", () => {
     expect(result.products[0].nutrients.energyKcal).toBeNull();
   });
 
-  it("throws on API error", async () => {
+  it("throws on API error when all hosts fail", async () => {
     mockFetch.mockResolvedValueOnce({ ok: false, status: 500 });
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 503 });
 
     await expect(searchProducts("test", "en")).rejects.toThrow(
-      "Open Food Facts API error: 500"
+      "Open Food Facts API error"
     );
   });
 });

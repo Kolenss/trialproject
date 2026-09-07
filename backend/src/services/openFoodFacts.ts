@@ -65,6 +65,10 @@ function mapProduct(raw: OpenFoodFactsProduct, lang: string): ProductResult {
 const cache = new Map<string, { data: { products: ProductResult[]; total: number }; expires: number }>();
 const CACHE_TTL = 5 * 60 * 1000;
 
+export function clearCache() {
+  cache.clear();
+}
+
 export async function searchProducts(
   query: string,
   lang: string = "en",
