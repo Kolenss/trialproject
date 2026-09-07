@@ -40,14 +40,6 @@ const allNutrientKeys = [
   "sugars", "proteins", "fiber", "salt",
 ] as const;
 
-function getCompleteness(nutrients: Product["nutrients"]): { available: number; total: number; percent: number } {
-  const total = allNutrientKeys.length;
-  if (!nutrients) return { available: 0, total, percent: 0 };
-  const available = allNutrientKeys.filter(
-    (k) => (nutrients as Record<string, unknown>)[k] !== null && (nutrients as Record<string, unknown>)[k] !== undefined
-  ).length;
-  return { available, total, percent: Math.round((available / total) * 100) };
-}
 
 export default function ProductCard({
   product,
@@ -110,7 +102,6 @@ export default function ProductCard({
           <div className="mt-auto pt-2">
             {product.nutrients && hasSubscription ? (
               (() => {
-                const { available, total, percent } = getCompleteness(product.nutrients);
                 const hasSummaryData = summaryKeys.some((k) => getNutrient(k) !== null);
                 return (
                   <>
@@ -140,18 +131,6 @@ export default function ProductCard({
                           <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
                         </svg>
                         <span className="text-[11px] text-amber-700 font-medium">Nutrition data not yet reported</span>
-                      </div>
-                    )}
-
-                    {available < total && (
-                      <div className="mt-1.5 flex items-center gap-1.5">
-                        <div className="flex-1 h-1 bg-neutral-100 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full rounded-full ${percent >= 75 ? "bg-emerald-400" : percent >= 50 ? "bg-amber-400" : "bg-red-400"}`}
-                            style={{ width: `${percent}%` }}
-                          />
-                        </div>
-                        <span className="text-[9px] text-neutral-400 tabular-nums">{available}/{total}</span>
                       </div>
                     )}
 
@@ -219,69 +198,41 @@ export default function ProductCard({
             </div>
 
             {/* Nutrient rows — scrollable */}
-            <div className="overflow-y-auto flex-1">
-            {(() => {
-              const { available, total, percent } = getCompleteness(product.nutrients);
-              const hasIncomplete = available < total;
-              return (
-                <>
-                  {hasIncomplete && (
-                    <div className="flex items-center gap-2 px-5 py-2.5 bg-amber-50 border-b border-amber-100">
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-[11px] font-medium text-amber-700">Data completeness</span>
-                          <span className="text-[11px] font-bold text-amber-700 tabular-nums">{percent}%</span>
-                        </div>
-                        <div className="h-1.5 bg-amber-200 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full rounded-full transition-all ${percent >= 75 ? "bg-emerald-500" : percent >= 50 ? "bg-amber-500" : "bg-red-500"}`}
-                            style={{ width: `${percent}%` }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  <div className="divide-y divide-neutral-100">
-                    {allNutrientKeys.map((key) => {
-                      const raw = getNutrient(key);
-                      const pct = getPercentDV(key, raw);
-                      const isIndented = key === "saturatedFat" || key === "sugars";
-                      const isBold = !isIndented;
+            <div className="overflow-y-auto flex-1 divide-y divide-neutral-100">
+              {allNutrientKeys.map((key) => {
+                const raw = getNutrient(key);
+                const pct = getPercentDV(key, raw);
+                const isIndented = key === "saturatedFat" || key === "sugars";
+                const isBold = !isIndented;
 
-                      return (
-                        <div
-                          key={key}
-                          className={`flex items-baseline justify-between px-5 py-2.5 gap-4 ${raw === null ? "bg-neutral-50/50" : ""}`}
-                        >
-                          <span className={`text-sm ${isIndented ? "pl-4 text-neutral-400" : "text-neutral-700"} ${isBold ? "font-semibold" : ""}`}>
-                            {labelFor(key)}
-                          </span>
-                          <span className="flex items-baseline gap-2 whitespace-nowrap tabular-nums">
-                            <span className={`text-sm ${isBold ? "font-semibold text-neutral-900" : "text-neutral-600"}`}>
-                              {raw !== null ? (
-                                <>{fmt(raw)}<span className="ml-0.5 text-neutral-400 font-normal text-xs">{unitFor(key)}</span></>
-                              ) : (
-                                <span className="text-neutral-300 font-normal italic text-xs">Not reported</span>
-                              )}
-                            </span>
-                            {pct !== null && (
-                              <span className="text-xs text-neutral-400 font-medium w-8 text-right">{pct}%</span>
-                            )}
-                          </span>
-                        </div>
-                      );
-                    })}
+                return (
+                  <div
+                    key={key}
+                    className={`flex items-baseline justify-between px-5 py-2.5 gap-4 ${raw === null ? "bg-neutral-50/50" : ""}`}
+                  >
+                    <span className={`text-sm ${isIndented ? "pl-4 text-neutral-400" : "text-neutral-700"} ${isBold ? "font-semibold" : ""}`}>
+                      {labelFor(key)}
+                    </span>
+                    <span className="flex items-baseline gap-2 whitespace-nowrap tabular-nums">
+                      <span className={`text-sm ${isBold ? "font-semibold text-neutral-900" : "text-neutral-600"}`}>
+                        {raw !== null ? (
+                          <>{fmt(raw)}<span className="ml-0.5 text-neutral-400 font-normal text-xs">{unitFor(key)}</span></>
+                        ) : (
+                          <span className="text-neutral-300 font-normal italic text-xs">Not reported</span>
+                        )}
+                      </span>
+                      {pct !== null && (
+                        <span className="text-xs text-neutral-400 font-medium w-8 text-right">{pct}%</span>
+                      )}
+                    </span>
                   </div>
-
-                </>
-              );
-            })()}
+                );
+              })}
             </div>
 
-            {/* Footer — pinned at bottom */}
+            {/* Footer */}
             {(() => {
-              const { available, total } = getCompleteness(product.nutrients);
-              const hasIncomplete = available < total;
+              const hasIncomplete = allNutrientKeys.some((k) => getNutrient(k) === null);
               return (
                 <div className="px-5 py-3 bg-neutral-50 border-t border-neutral-100 space-y-1 shrink-0">
                   <p className="text-[10px] text-neutral-400 text-center">
