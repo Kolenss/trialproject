@@ -34,8 +34,8 @@ cd ../frontend && npm install
 ### 2. Configure environment variables
 
 ```bash
-cp .env.example backend/.env
-cp .env.example frontend/.env.local
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env.local
 ```
 
 Edit both files with your actual values:
